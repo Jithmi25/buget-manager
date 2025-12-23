@@ -1,8 +1,8 @@
 // src/App.js
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import SignUp from './components/Auth/SignUp';
-import Login from './components/Auth/Login';
+import SignUp from './components/Auth/SignUp.jsx';
+import Login from './components/Auth/Login.jsx';
 import Dashboard from './components/Dashboard/Dashboard';
 import { supabase } from './lib/supabase';
 
