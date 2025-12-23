@@ -1,52 +1,59 @@
 // src/App.js
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { supabase } from './lib/supabase';
-import Login from './components/Auth/Login';
 import SignUp from './components/Auth/SignUp';
-import DashboardPage from './pages/DashboardPage';
-import Home from './pages/Home';
-import Header from './components/Layout/Header';
+import Login from './components/Auth/Login';
+import Dashboard from './components/Dashboard/Dashboard';
+import { supabase } from './lib/supabase';
 
 function App() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [session, setSession] = React.useState(null);
 
-  useEffect(() => {
-    // Check active sessions and sets the user
+  React.useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user || null);
-      setLoading(false);
+      setSession(session);
     });
 
-    // Listen for changes on auth state
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user || null);
-        setLoading(false);
-      }
-    );
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
 
-    return () => {
-      listener?.subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, []);
 
-  if (loading) {
-    return <div>Loading...</div>;
+  function Logout() {
+    React.useEffect(() => {
+      supabase.auth.signOut().catch(() => {});
+    }, []);
+    return <Navigate to="/login" />;
   }
 
   return (
     <Router>
-      <div className="App">
-        <Header user={user} />
-        <Routes>
-          <Route path="/" element={user ? <Navigate to="/dashboard" /> : <Home />} />
-          <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login />} />
-          <Route path="/signup" element={user ? <Navigate to="/dashboard" /> : <SignUp />} />
-          <Route path="/dashboard" element={user ? <DashboardPage /> : <Navigate to="/login" />} />
-        </Routes>
-      </div>
+      <Routes>
+        <Route 
+          path="/signup" 
+          element={!session ? <SignUp /> : <Navigate to="/dashboard" />} 
+        />
+        <Route 
+          path="/login" 
+          element={!session ? <Login /> : <Navigate to="/dashboard" />} 
+        />
+        <Route 
+          path="/logout" 
+          element={<Logout />} 
+        />
+        <Route 
+          path="/dashboard" 
+          element={session ? <Dashboard /> : <Navigate to="/login" />} 
+        />
+        <Route 
+          path="/" 
+          element={<Navigate to={session ? "/dashboard" : "/login"} />} 
+        />
+      </Routes>
     </Router>
   );
 }

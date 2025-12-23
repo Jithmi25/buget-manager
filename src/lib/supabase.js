@@ -1,8 +1,17 @@
 // src/lib/supabase.js
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
-const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+// Safe env access for browser + Vite
+const env = (typeof import.meta !== 'undefined' && import.meta.env) ? import.meta.env : {};
+const nodeEnv = (typeof process !== 'undefined' && process.env) ? process.env : {};
+const supabaseUrl = env.VITE_SUPABASE_URL ?? nodeEnv.REACT_APP_SUPABASE_URL;
+const supabaseAnonKey = env.VITE_SUPABASE_ANON_KEY ?? nodeEnv.REACT_APP_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  const message = 'Supabase env vars are missing. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file.';
+  console.error(message);
+  throw new Error(message);
+}
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
