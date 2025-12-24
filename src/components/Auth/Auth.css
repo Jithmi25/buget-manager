@@ -251,6 +251,25 @@ html {
   font-size: 16px;
 }
 
+.success-message {
+  background: #c6f6d5;
+  color: #22543d;
+  padding: 14px 16px;
+  border-radius: 10px;
+  margin-bottom: 24px;
+  font-size: 14px;
+  border-left: 4px solid #38a169;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.success-message:before {
+  content: "✓";
+  font-weight: bold;
+  font-size: 18px;
+}
+
 /* Video styles */
 .auth-video {
   position: absolute;

@@ -1,8 +1,11 @@
 // src/App.js
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import Home from './components/Home/Home.jsx';
 import SignUp from './components/Auth/SignUp.jsx';
 import Login from './components/Auth/Login.jsx';
+import ForgotPassword from './components/Auth/ForgotPassword.jsx';
+import ResetPassword from './components/Auth/ResetPassword.jsx';
 import Dashboard from './components/Dashboard/Dashboard';
 import { supabase } from './lib/supabase';
 
@@ -42,6 +45,14 @@ function App() {
           element={!session ? <Login /> : <Navigate to="/dashboard" />} 
         />
         <Route 
+          path="/forgot-password" 
+          element={!session ? <ForgotPassword /> : <Navigate to="/dashboard" />} 
+        />
+        <Route 
+          path="/reset-password" 
+          element={<ResetPassword />} 
+        />
+        <Route 
           path="/logout" 
           element={<Logout />} 
         />
@@ -51,7 +62,7 @@ function App() {
         />
         <Route 
           path="/" 
-          element={<Navigate to={session ? "/dashboard" : "/login"} />} 
+          element={session ? <Navigate to="/dashboard" /> : <Home />} 
         />
       </Routes>
     </Router>
