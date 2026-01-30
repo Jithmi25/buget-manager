@@ -32,13 +32,17 @@ const Login = () => {
         formData.password
       );
 
-      if (error) throw error;
+      if (error) {
+        setError(error.message || 'Login failed. Please try again.');
+        return;
+      }
 
       if (data?.user) {
         navigate('/dashboard');
       }
     } catch (err) {
-      setError(err.message);
+      console.error('Login error:', err);
+      setError(err.message || 'An unexpected error occurred.');
     } finally {
       setLoading(false);
     }

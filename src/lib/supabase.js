@@ -25,39 +25,83 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 
 // 1. Email Sign Up
 export const signUpWithEmail = async (email, password, fullName) => {
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        full_name: fullName,
-        avatar_url: null
-      },
-      emailRedirectTo: `${window.location.origin}/dashboard`
+  try {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName,
+          avatar_url: null
+        },
+        emailRedirectTo: `${window.location.origin}/dashboard`
+      }
+    });
+
+    if (error) {
+      console.error('Supabase signup error:', error);
+      
+      // Improve rate limit error message
+      if (error.message?.includes('rate limit')) {
+        return { 
+          data: null, 
+          error: {
+            message: 'Too many signup attempts. Please try again in 1 hour or use a different email address.',
+            ...error
+          }
+        };
+      }
+      
+      return { data: null, error };
     }
-  });
 
-  // Create profile entry (handled by trigger but we can also do it here)
-  if (data?.user && !error) {
-    await supabase
-      .from('profiles')
-      .upsert({
-        id: data.user.id,
-        email: email,
-        full_name: fullName
-      });
+    return { data, error: null };
+  } catch (err) {
+    console.error('Unexpected signup error:', err);
+    return { 
+      data: null, 
+      error: {
+        message: err.message || 'Network error. Please check your connection and try again.',
+        status: err.status || 'network_error'
+      }
+    };
   }
-
-  return { data, error };
 };
 
 // 2. Email Login
 export const signInWithEmail = async (email, password) => {
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password
-  });
-  return { data, error };
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (error) {
+      console.error('Supabase login error:', error);
+      // Return a more user-friendly error message
+      if (error.message.includes('Invalid login credentials')) {
+        return { 
+          data: null, 
+          error: { 
+            message: 'Invalid email or password. Please check your credentials.',
+            ...error 
+          } 
+        };
+      }
+      return { data: null, error };
+    }
+
+    return { data, error: null };
+  } catch (err) {
+    console.error('Unexpected login error:', err);
+    return { 
+      data: null, 
+      error: {
+        message: err.message || 'Login failed. Please try again.',
+        status: err.status || 'network_error'
+      }
+    };
+  }
 };
 
 // 3. Google Login/Signup

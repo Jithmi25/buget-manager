@@ -48,7 +48,10 @@ const SignUp = () => {
         formData.fullName
       );
 
-      if (error) throw error;
+      if (error) {
+        setError(error.message || 'Signup failed. Please try again.');
+        return;
+      }
 
       // Check if email confirmation is required
       if (data?.user?.identities?.length === 0) {
@@ -61,7 +64,8 @@ const SignUp = () => {
         }
       }
     } catch (err) {
-      setError(err.message);
+      console.error('Signup error:', err);
+      setError(err.message || 'An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
     }

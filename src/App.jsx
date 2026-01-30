@@ -6,7 +6,7 @@ import SignUp from './components/Auth/SignUp.jsx';
 import Login from './components/Auth/Login.jsx';
 import ForgotPassword from './components/Auth/ForgotPassword.jsx';
 import ResetPassword from './components/Auth/ResetPassword.jsx';
-import Dashboard from './components/Dashboard/Dashboard';
+import Dashboard from './components/Dashboard/Dashboard.jsx';
 import { supabase } from './lib/supabase';
 
 function App() {

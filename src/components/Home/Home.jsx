@@ -40,7 +40,7 @@ const Home = () => {
             <div className="card-icon">💰</div>
             <div className="card-content">
               <div className="card-title">Total Balance</div>
-              <div className="card-value">$12,450.00</div>
+              <div className="card-value">Rs. 12,450.00</div>
             </div>
           </div>
           
@@ -48,7 +48,7 @@ const Home = () => {
             <div className="card-icon">📊</div>
             <div className="card-content">
               <div className="card-title">Monthly Spending</div>
-              <div className="card-value">$3,250.00</div>
+              <div className="card-value">Rs. 3,250.00</div>
             </div>
           </div>
           
