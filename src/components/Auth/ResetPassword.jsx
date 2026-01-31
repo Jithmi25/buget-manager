@@ -1,7 +1,7 @@
 // src/components/Auth/ResetPassword.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../../lib/supabase';
+// Backend disabled for UI-only preview
 import authVideo from '../../assets/auth.mp4';
 import './Auth.css';
 
@@ -27,21 +27,10 @@ const ResetPassword = () => {
     }
 
     setLoading(true);
-
-    try {
-      const { error } = await supabase.auth.updateUser({
-        password: password
-      });
-
-      if (error) throw error;
-
-      alert('Password updated successfully!');
-      navigate('/login');
-    } catch (err) {
-      setError(err.message || 'Failed to update password');
-    } finally {
-      setLoading(false);
-    }
+    // UI-only: skip backend update
+    alert('Password updated successfully!');
+    setLoading(false);
+    navigate('/login');
   };
 
   return (

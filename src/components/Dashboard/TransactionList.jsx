@@ -1,22 +1,12 @@
 // src/components/Dashboard/TransactionList.js
 import React from 'react';
-import { supabase } from '../../lib/supabase';
+// Backend disabled for UI-only preview
 
 const TransactionList = ({ transactions, onRefresh, compact = false }) => {
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this transaction?')) return;
-
-    try {
-      const { error } = await supabase
-        .from('transactions')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-      if (onRefresh) onRefresh();
-    } catch (error) {
-      console.error('Error deleting transaction:', error);
-    }
+    // UI-only: skip backend delete
+    if (onRefresh) onRefresh();
   };
 
   if (transactions.length === 0) {

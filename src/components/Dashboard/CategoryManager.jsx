@@ -1,6 +1,6 @@
 // src/components/Dashboard/CategoryManager.js
 import React, { useState } from 'react';
-import { supabase } from '../../lib/supabase';
+// Backend disabled for UI-only preview
 
 const CategoryManager = ({ categories, onRefresh }) => {
   const [newCategory, setNewCategory] = useState('');
@@ -11,41 +11,16 @@ const CategoryManager = ({ categories, onRefresh }) => {
     if (!newCategory.trim()) return;
 
     setLoading(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      const { error } = await supabase
-        .from('categories')
-        .insert([{
-          user_id: user.id,
-          name: newCategory.trim()
-        }]);
-
-      if (error) throw error;
-
-      setNewCategory('');
-      if (onRefresh) onRefresh();
-    } catch (error) {
-      console.error('Error adding category:', error);
-    } finally {
-      setLoading(false);
-    }
+    // UI-only: skip backend insert
+    setNewCategory('');
+    if (onRefresh) onRefresh();
+    setLoading(false);
   };
 
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure? This will affect existing transactions.')) return;
-
-    try {
-      const { error } = await supabase
-        .from('categories')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-      if (onRefresh) onRefresh();
-    } catch (error) {
-      console.error('Error deleting category:', error);
-    }
+    // UI-only: skip backend delete
+    if (onRefresh) onRefresh();
   };
 
   return (

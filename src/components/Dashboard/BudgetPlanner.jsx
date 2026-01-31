@@ -1,6 +1,6 @@
 // src/components/Dashboard/BudgetPlanner.js
 import React, { useState } from 'react';
-import { supabase } from '../../lib/supabase';
+// Backend disabled for UI-only preview
 
 const BudgetPlanner = ({ budgets, categories, transactions, onRefresh }) => {
   const [formData, setFormData] = useState({
@@ -32,49 +32,21 @@ const BudgetPlanner = ({ budgets, categories, transactions, onRefresh }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    // UI-only: skip backend insert
+    setFormData({
+      category: '',
+      amount: '',
+      period: 'monthly'
+    });
 
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      const { error } = await supabase
-        .from('budgets')
-        .insert([{
-          user_id: user.id,
-          category: formData.category,
-          amount: parseFloat(formData.amount),
-          period: formData.period
-        }]);
-
-      if (error) throw error;
-
-      setFormData({
-        category: '',
-        amount: '',
-        period: 'monthly'
-      });
-
-      if (onRefresh) onRefresh();
-    } catch (error) {
-      console.error('Error adding budget:', error);
-    } finally {
-      setLoading(false);
-    }
+    if (onRefresh) onRefresh();
+    setLoading(false);
   };
 
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this budget?')) return;
-
-    try {
-      const { error } = await supabase
-        .from('budgets')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-      if (onRefresh) onRefresh();
-    } catch (error) {
-      console.error('Error deleting budget:', error);
-    }
+    // UI-only: skip backend delete
+    if (onRefresh) onRefresh();
   };
 
   return (

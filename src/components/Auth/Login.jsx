@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import authVideo from '../../assets/auth.mp4';
 import { Link, useNavigate } from 'react-router-dom';
-import { signInWithEmail, signInWithGoogle } from '../../lib/supabase';
+// Backend disabled for UI-only preview
 import './Auth.css';
 
 const Login = () => {
@@ -26,35 +26,14 @@ const Login = () => {
     setError('');
     setLoading(true);
 
-    try {
-      const { data, error } = await signInWithEmail(
-        formData.email,
-        formData.password
-      );
-
-      if (error) {
-        setError(error.message || 'Login failed. Please try again.');
-        return;
-      }
-
-      if (data?.user) {
-        navigate('/dashboard');
-      }
-    } catch (err) {
-      console.error('Login error:', err);
-      setError(err.message || 'An unexpected error occurred.');
-    } finally {
-      setLoading(false);
-    }
+    // UI-only: skip backend auth and go to dashboard
+    setLoading(false);
+    navigate('/dashboard');
   };
 
   const handleGoogleLogin = async () => {
-    try {
-      const { error } = await signInWithGoogle();
-      if (error) throw error;
-    } catch (err) {
-      setError(err.message);
-    }
+    // UI-only: skip backend OAuth and go to dashboard
+    navigate('/dashboard');
   };
 
   return (

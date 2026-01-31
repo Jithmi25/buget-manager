@@ -1,7 +1,7 @@
 // src/components/Auth/ForgotPassword.jsx
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { supabase } from '../../lib/supabase';
+// Backend disabled for UI-only preview
 import authVideo from '../../assets/auth.mp4';
 import './Auth.css';
 
@@ -16,19 +16,9 @@ const ForgotPassword = () => {
     setError('');
     setLoading(true);
 
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-
-      if (error) throw error;
-
-      setSuccess(true);
-    } catch (err) {
-      setError(err.message || 'Failed to send reset email');
-    } finally {
-      setLoading(false);
-    }
+    // UI-only: skip backend call and show success
+    setSuccess(true);
+    setLoading(false);
   };
 
   if (success) {

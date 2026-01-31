@@ -1,6 +1,6 @@
 // src/components/Dashboard/AddTransaction.js
 import React, { useState } from 'react';
-import { supabase } from '../../lib/supabase';
+// Backend disabled for UI-only preview
 
 const AddTransaction = ({ categories, onTransactionAdded }) => {
   const [formData, setFormData] = useState({
@@ -16,36 +16,17 @@ const AddTransaction = ({ categories, onTransactionAdded }) => {
     e.preventDefault();
     setLoading(true);
 
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      const { error } = await supabase
-        .from('transactions')
-        .insert([{
-          user_id: user.id,
-          type: formData.type,
-          amount: parseFloat(formData.amount),
-          category: formData.category,
-          description: formData.description,
-          date: formData.date
-        }]);
+    // UI-only: skip backend insert
+    setFormData({
+      type: 'expense',
+      amount: '',
+      category: '',
+      description: '',
+      date: new Date().toISOString().split('T')[0]
+    });
 
-      if (error) throw error;
-
-      setFormData({
-        type: 'expense',
-        amount: '',
-        category: '',
-        description: '',
-        date: new Date().toISOString().split('T')[0]
-      });
-
-      if (onTransactionAdded) onTransactionAdded();
-    } catch (error) {
-      console.error('Error adding transaction:', error);
-    } finally {
-      setLoading(false);
-    }
+    if (onTransactionAdded) onTransactionAdded();
+    setLoading(false);
   };
 
   return (

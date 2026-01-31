@@ -7,46 +7,25 @@ import Login from './components/Auth/Login.jsx';
 import ForgotPassword from './components/Auth/ForgotPassword.jsx';
 import ResetPassword from './components/Auth/ResetPassword.jsx';
 import Dashboard from './components/Dashboard/Dashboard.jsx';
-import { supabase } from './lib/supabase';
+// Backend disabled for UI-only preview
 
 function App() {
-  const [session, setSession] = React.useState(null);
-
-  React.useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  function Logout() {
-    React.useEffect(() => {
-      supabase.auth.signOut().catch(() => {});
-    }, []);
-    return <Navigate to="/login" />;
-  }
+  // UI-only mode: backend auth disabled
 
   return (
     <Router>
       <Routes>
         <Route 
           path="/signup" 
-          element={!session ? <SignUp /> : <Navigate to="/dashboard" />} 
+          element={<SignUp />} 
         />
         <Route 
           path="/login" 
-          element={!session ? <Login /> : <Navigate to="/dashboard" />} 
+          element={<Login />} 
         />
         <Route 
           path="/forgot-password" 
-          element={!session ? <ForgotPassword /> : <Navigate to="/dashboard" />} 
+          element={<ForgotPassword />} 
         />
         <Route 
           path="/reset-password" 
@@ -54,15 +33,15 @@ function App() {
         />
         <Route 
           path="/logout" 
-          element={<Logout />} 
+          element={<Navigate to="/login" />} 
         />
         <Route 
           path="/dashboard" 
-          element={session ? <Dashboard /> : <Navigate to="/login" />} 
+          element={<Dashboard />} 
         />
         <Route 
           path="/" 
-          element={session ? <Navigate to="/dashboard" /> : <Home />} 
+          element={<Home />} 
         />
       </Routes>
     </Router>

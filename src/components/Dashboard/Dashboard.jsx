@@ -1,7 +1,6 @@
 // src/components/Dashboard/Dashboard.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../../lib/supabase';
 import AddTransaction from './AddTransaction';
 import TransactionList from './TransactionList';
 import BudgetPlanner from './BudgetPlanner';
@@ -23,45 +22,71 @@ const Dashboard = () => {
   });
 
   useEffect(() => {
-    fetchUserData();
-    fetchTransactions();
-    fetchBudgets();
-    fetchCategories();
+    // UI-only mock data
+    setUser({ email: 'demo@budget.local' });
+    setTransactions([
+      {
+        id: 't1',
+        type: 'income',
+        amount: 85000,
+        category: 'Salary',
+        description: 'January salary',
+        date: new Date().toISOString()
+      },
+      {
+        id: 't2',
+        type: 'expense',
+        amount: 12000,
+        category: 'Rent',
+        description: 'Monthly rent',
+        date: new Date().toISOString()
+      },
+      {
+        id: 't3',
+        type: 'expense',
+        amount: 3200,
+        category: 'Groceries',
+        description: 'Weekly groceries',
+        date: new Date().toISOString()
+      },
+      {
+        id: 't4',
+        type: 'income',
+        amount: 4500,
+        category: 'Freelance',
+        description: 'Design project',
+        date: new Date().toISOString()
+      },
+      {
+        id: 't5',
+        type: 'expense',
+        amount: 1800,
+        category: 'Transport',
+        description: 'Fuel and rides',
+        date: new Date().toISOString()
+      }
+    ]);
+    setBudgets([
+      { id: 'b1', category: 'Rent', amount: 15000, period: 'monthly' },
+      { id: 'b2', category: 'Groceries', amount: 6000, period: 'monthly' },
+      { id: 'b3', category: 'Transport', amount: 3500, period: 'monthly' }
+    ]);
+    setCategories([
+      { id: 'c1', name: 'Salary' },
+      { id: 'c2', name: 'Rent' },
+      { id: 'c3', name: 'Groceries' },
+      { id: 'c4', name: 'Transport' },
+      { id: 'c5', name: 'Freelance' }
+    ]);
   }, []);
 
   useEffect(() => {
     calculateStats();
   }, [transactions]);
 
-  const fetchUserData = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    setUser(user);
-  };
-
-  const fetchTransactions = async () => {
-    const { data, error } = await supabase
-      .from('transactions')
-      .select('*')
-      .order('date', { ascending: false });
-    
-    if (data) setTransactions(data);
-  };
-
-  const fetchBudgets = async () => {
-    const { data, error } = await supabase
-      .from('budgets')
-      .select('*');
-    
-    if (data) setBudgets(data);
-  };
-
-  const fetchCategories = async () => {
-    const { data, error } = await supabase
-      .from('categories')
-      .select('*');
-    
-    if (data) setCategories(data);
-  };
+  const fetchTransactions = () => {};
+  const fetchBudgets = () => {};
+  const fetchCategories = () => {};
 
   const calculateStats = () => {
     const income = transactions
@@ -80,7 +105,6 @@ const Dashboard = () => {
   };
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
     navigate('/login');
   };
 

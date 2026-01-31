@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import authVideo from '../../assets/auth.mp4';
 import { Link, useNavigate } from 'react-router-dom';
-import { signUpWithEmail, signInWithGoogle } from '../../lib/supabase';
+// Backend disabled for UI-only preview
 import './Auth.css';
 
 const SignUp = () => {
@@ -40,44 +40,14 @@ const SignUp = () => {
     }
 
     setLoading(true);
-
-    try {
-      const { data, error } = await signUpWithEmail(
-        formData.email,
-        formData.password,
-        formData.fullName
-      );
-
-      if (error) {
-        setError(error.message || 'Signup failed. Please try again.');
-        return;
-      }
-
-      // Check if email confirmation is required
-      if (data?.user?.identities?.length === 0) {
-        setError('User already exists');
-      } else if (data?.user) {
-        if (data.session) {
-          navigate('/dashboard');
-        } else {
-          setSuccess(true);
-        }
-      }
-    } catch (err) {
-      console.error('Signup error:', err);
-      setError(err.message || 'An unexpected error occurred. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+    // UI-only: skip backend signup and show success
+    setLoading(false);
+    setSuccess(true);
   };
 
   const handleGoogleSignUp = async () => {
-    try {
-      const { error } = await signInWithGoogle();
-      if (error) throw error;
-    } catch (err) {
-      setError(err.message);
-    }
+    // UI-only: skip backend OAuth and go to dashboard
+    navigate('/dashboard');
   };
 
   if (success) {
