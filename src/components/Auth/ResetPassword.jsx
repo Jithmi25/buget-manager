@@ -10,27 +10,99 @@ const ResetPassword = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [touched, setTouched] = useState({});
   const navigate = useNavigate();
+
+  const validatePassword = (password) => {
+    if (!password) return 'Password is required';
+    if (password.length < 6) return 'Password must be at least 6 characters';
+    if (!/(?=.*[a-z])/.test(password)) return 'Password must contain at least one lowercase letter';
+    if (!/(?=.*[A-Z])/.test(password)) return 'Password must contain at least one uppercase letter';
+    if (!/(?=.*\d)/.test(password)) return 'Password must contain at least one number';
+    return '';
+  };
+
+  const validateConfirmPassword = (confirmPass, pass) => {
+    if (!confirmPass) return 'Please confirm your password';
+    if (confirmPass !== pass) return 'Passwords do not match';
+    return '';
+  };
+
+  const handlePasswordChange = (e) => {
+    const value = e.target.value;
+    setPassword(value);
+
+    if (touched.password) {
+      setFieldErrors({
+        ...fieldErrors,
+        password: validatePassword(value)
+      });
+    }
+  };
+
+  const handleConfirmPasswordChange = (e) => {
+    const value = e.target.value;
+    setConfirmPassword(value);
+
+    if (touched.confirmPassword) {
+      setFieldErrors({
+        ...fieldErrors,
+        confirmPassword: validateConfirmPassword(value, password)
+      });
+    }
+  };
+
+  const handleBlur = (field) => {
+    setTouched({
+      ...touched,
+      [field]: true
+    });
+
+    if (field === 'password') {
+      setFieldErrors({
+        ...fieldErrors,
+        password: validatePassword(password)
+      });
+    } else if (field === 'confirmPassword') {
+      setFieldErrors({
+        ...fieldErrors,
+        confirmPassword: validateConfirmPassword(confirmPassword, password)
+      });
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
+    // Mark all fields as touched
+    setTouched({
+      password: true,
+      confirmPassword: true
+    });
 
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters');
+    // Validate all fields
+    const errors = {
+      password: validatePassword(password),
+      confirmPassword: validateConfirmPassword(confirmPassword, password)
+    };
+
+    setFieldErrors(errors);
+
+    // Check if there are any errors
+    if (Object.values(errors).some(error => error !== '')) {
+      setError('Please fix the errors above');
       return;
     }
 
     setLoading(true);
     // UI-only: skip backend update
-    alert('Password updated successfully!');
-    setLoading(false);
-    navigate('/login');
+    setTimeout(() => {
+      alert('Password updated successfully!');
+      setLoading(false);
+      navigate('/login');
+    }, 500);
   };
 
   return (
@@ -43,16 +115,21 @@ const ResetPassword = () => {
         
         {error && <div className="error-message">{error}</div>}
 
-        <form onSubmit={handleSubmit} className="auth-form">
+        <form onSubmit={handleSubmit} className="auth-form" noValidate>
           <div className="form-group">
             <input
               type="password"
               name="password"
               placeholder="New Password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={handlePasswordChange}
+              onBlur={() => handleBlur('password')}
+              className={touched.password && fieldErrors.password ? 'error' : ''}
               required
             />
+            {touched.password && fieldErrors.password && (
+              <span className="field-error">{fieldErrors.password}</span>
+            )}
           </div>
 
           <div className="form-group">
@@ -61,9 +138,14 @@ const ResetPassword = () => {
               name="confirmPassword"
               placeholder="Confirm New Password"
               value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              onChange={handleConfirmPasswordChange}
+              onBlur={() => handleBlur('confirmPassword')}
+              className={touched.confirmPassword && fieldErrors.confirmPassword ? 'error' : ''}
               required
             />
+            {touched.confirmPassword && fieldErrors.confirmPassword && (
+              <span className="field-error">{fieldErrors.confirmPassword}</span>
+            )}
           </div>
 
           <button type="submit" className="btn-primary" disabled={loading}>

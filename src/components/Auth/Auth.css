@@ -20,8 +20,9 @@ html {
   justify-content: center;
   min-height: 100vh;
   background: #f7fafc;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-    Ubuntu, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+    sans-serif;
   padding: 40px 20px;
 }
 
@@ -74,6 +75,7 @@ html {
 
 .form-group {
   margin-bottom: 20px;
+  position: relative;
 }
 
 .form-group input {
@@ -94,8 +96,38 @@ html {
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
+.form-group input.error {
+  border-color: #f56565;
+  background: #fff5f5;
+}
+
+.form-group input.error:focus {
+  border-color: #f56565;
+  box-shadow: 0 0 0 3px rgba(245, 101, 101, 0.1);
+}
+
 .form-group input::placeholder {
   color: #a0aec0;
+}
+
+.field-error {
+  display: block;
+  color: #f56565;
+  font-size: 13px;
+  margin-top: 6px;
+  font-weight: 500;
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .form-options {

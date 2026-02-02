@@ -9,16 +9,51 @@ const ForgotPassword = () => {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [touched, setTouched] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  const validateEmail = (email) => {
+    if (!email) return 'Email is required';
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) return 'Please enter a valid email address';
+    return '';
+  };
+
+  const handleEmailChange = (e) => {
+    const value = e.target.value;
+    setEmail(value);
+    
+    if (touched) {
+      setEmailError(validateEmail(value));
+    }
+  };
+
+  const handleBlur = () => {
+    setTouched(true);
+    setEmailError(validateEmail(email));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setTouched(true);
+
+    const emailValidationError = validateEmail(email);
+    setEmailError(emailValidationError);
+
+    if (emailValidationError) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
     setLoading(true);
 
     // UI-only: skip backend call and show success
-    setSuccess(true);
-    setLoading(false);
+    setTimeout(() => {
+      setSuccess(true);
+      setLoading(false);
+    }, 500);
   };
 
   if (success) {
@@ -62,16 +97,21 @@ const ForgotPassword = () => {
         
         {error && <div className="error-message">{error}</div>}
 
-        <form onSubmit={handleSubmit} className="auth-form">
+        <form onSubmit={handleSubmit} className="auth-form" noValidate>
           <div className="form-group">
             <input
               type="email"
               name="email"
               placeholder="Email Address"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={handleEmailChange}
+              onBlur={handleBlur}
+              className={touched && emailError ? 'error' : ''}
               required
             />
+            {touched && emailError && (
+              <span className="field-error">{emailError}</span>
+            )}
           </div>
 
           <button type="submit" className="btn-primary" disabled={loading}>

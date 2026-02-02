@@ -13,14 +13,84 @@ const SignUp = () => {
     confirmPassword: ''
   });
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [touched, setTouched] = useState({});
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
 
+  // Validation functions
+  const validateFullName = (name) => {
+    if (!name.trim()) return 'Full name is required';
+    if (name.trim().length < 2) return 'Name must be at least 2 characters';
+    if (!/^[a-zA-Z\s]+$/.test(name)) return 'Name can only contain letters and spaces';
+    return '';
+  };
+
+  const validateEmail = (email) => {
+    if (!email) return 'Email is required';
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) return 'Please enter a valid email address';
+    return '';
+  };
+
+  const validatePassword = (password) => {
+    if (!password) return 'Password is required';
+    if (password.length < 6) return 'Password must be at least 6 characters';
+    if (!/(?=.*[a-z])/.test(password)) return 'Password must contain at least one lowercase letter';
+    if (!/(?=.*[A-Z])/.test(password)) return 'Password must contain at least one uppercase letter';
+    if (!/(?=.*\d)/.test(password)) return 'Password must contain at least one number';
+    return '';
+  };
+
+  const validateConfirmPassword = (confirmPass, password) => {
+    if (!confirmPass) return 'Please confirm your password';
+    if (confirmPass !== password) return 'Passwords do not match';
+    return '';
+  };
+
+  const validateField = (name, value) => {
+    switch (name) {
+      case 'fullName':
+        return validateFullName(value);
+      case 'email':
+        return validateEmail(value);
+      case 'password':
+        return validatePassword(value);
+      case 'confirmPassword':
+        return validateConfirmPassword(value, formData.password);
+      default:
+        return '';
+    }
+  };
+
   const handleChange = (e) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: value
+    });
+
+    // Validate field if it has been touched
+    if (touched[name]) {
+      const error = validateField(name, value);
+      setFieldErrors({
+        ...fieldErrors,
+        [name]: error
+      });
+    }
+  };
+
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    setTouched({
+      ...touched,
+      [name]: true
+    });
+    const error = validateField(name, value);
+    setFieldErrors({
+      ...fieldErrors,
+      [name]: error
     });
   };
 
@@ -28,21 +98,36 @@ const SignUp = () => {
     e.preventDefault();
     setError('');
 
-    // Validation
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
+    // Mark all fields as touched
+    setTouched({
+      fullName: true,
+      email: true,
+      password: true,
+      confirmPassword: true
+    });
 
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters');
+    // Validate all fields
+    const errors = {
+      fullName: validateFullName(formData.fullName),
+      email: validateEmail(formData.email),
+      password: validatePassword(formData.password),
+      confirmPassword: validateConfirmPassword(formData.confirmPassword, formData.password)
+    };
+
+    setFieldErrors(errors);
+
+    // Check if there are any errors
+    if (Object.values(errors).some(error => error !== '')) {
+      setError('Please fix the errors above');
       return;
     }
 
     setLoading(true);
     // UI-only: skip backend signup and show success
-    setLoading(false);
-    setSuccess(true);
+    setTimeout(() => {
+      setLoading(false);
+      setSuccess(true);
+    }, 500);
   };
 
   const handleGoogleSignUp = async () => {
@@ -87,7 +172,7 @@ const SignUp = () => {
         
         {error && <div className="error-message">{error}</div>}
 
-        <form onSubmit={handleEmailSignUp} className="auth-form">
+        <form onSubmit={handleEmailSignUp} className="auth-form" noValidate>
           <div className="form-group">
             <input
               type="text"
@@ -95,8 +180,13 @@ const SignUp = () => {
               placeholder="Full Name"
               value={formData.fullName}
               onChange={handleChange}
+              onBlur={handleBlur}
+              className={touched.fullName && fieldErrors.fullName ? 'error' : ''}
               required
             />
+            {touched.fullName && fieldErrors.fullName && (
+              <span className="field-error">{fieldErrors.fullName}</span>
+            )}
           </div>
           
           <div className="form-group">
@@ -106,8 +196,13 @@ const SignUp = () => {
               placeholder="Email Address"
               value={formData.email}
               onChange={handleChange}
+              onBlur={handleBlur}
+              className={touched.email && fieldErrors.email ? 'error' : ''}
               required
             />
+            {touched.email && fieldErrors.email && (
+              <span className="field-error">{fieldErrors.email}</span>
+            )}
           </div>
           
           <div className="form-group">
@@ -117,8 +212,13 @@ const SignUp = () => {
               placeholder="Password (min 6 characters)"
               value={formData.password}
               onChange={handleChange}
+              onBlur={handleBlur}
+              className={touched.password && fieldErrors.password ? 'error' : ''}
               required
             />
+            {touched.password && fieldErrors.password && (
+              <span className="field-error">{fieldErrors.password}</span>
+            )}
           </div>
           
           <div className="form-group">
@@ -128,8 +228,13 @@ const SignUp = () => {
               placeholder="Confirm Password"
               value={formData.confirmPassword}
               onChange={handleChange}
+              onBlur={handleBlur}
+              className={touched.confirmPassword && fieldErrors.confirmPassword ? 'error' : ''}
               required
             />
+            {touched.confirmPassword && fieldErrors.confirmPassword && (
+              <span className="field-error">{fieldErrors.confirmPassword}</span>
+            )}
           </div>
 
           <button

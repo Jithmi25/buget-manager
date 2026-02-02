@@ -11,24 +11,97 @@ const Login = () => {
     password: ''
   });
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [touched, setTouched] = useState({});
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  // Validation functions
+  const validateEmail = (email) => {
+    if (!email) return 'Email is required';
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) return 'Please enter a valid email address';
+    return '';
+  };
+
+  const validatePassword = (password) => {
+    if (!password) return 'Password is required';
+    if (password.length < 6) return 'Password must be at least 6 characters';
+    return '';
+  };
+
+  const validateField = (name, value) => {
+    switch (name) {
+      case 'email':
+        return validateEmail(value);
+      case 'password':
+        return validatePassword(value);
+      default:
+        return '';
+    }
+  };
+
   const handleChange = (e) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: value
+    });
+
+    // Validate field if it has been touched
+    if (touched[name]) {
+      const error = validateField(name, value);
+      setFieldErrors({
+        ...fieldErrors,
+        [name]: error
+      });
+    }
+  };
+
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    setTouched({
+      ...touched,
+      [name]: true
+    });
+    const error = validateField(name, value);
+    setFieldErrors({
+      ...fieldErrors,
+      [name]: error
     });
   };
 
   const handleEmailLogin = async (e) => {
     e.preventDefault();
     setError('');
+
+    // Mark all fields as touched
+    setTouched({
+      email: true,
+      password: true
+    });
+
+    // Validate all fields
+    const errors = {
+      email: validateEmail(formData.email),
+      password: validatePassword(formData.password)
+    };
+
+    setFieldErrors(errors);
+
+    // Check if there are any errors
+    if (Object.values(errors).some(error => error !== '')) {
+      setError('Please fix the errors above');
+      return;
+    }
+
     setLoading(true);
 
     // UI-only: skip backend auth and go to dashboard
-    setLoading(false);
-    navigate('/dashboard');
+    setTimeout(() => {
+      setLoading(false);
+      navigate('/dashboard');
+    }, 500);
   };
 
   const handleGoogleLogin = async () => {
@@ -46,7 +119,7 @@ const Login = () => {
         
         {error && <div className="error-message">{error}</div>}
 
-        <form onSubmit={handleEmailLogin} className="auth-form">
+        <form onSubmit={handleEmailLogin} className="auth-form" noValidate>
           <div className="form-group">
             <input
               type="email"
@@ -54,8 +127,13 @@ const Login = () => {
               placeholder="Email Address"
               value={formData.email}
               onChange={handleChange}
+              onBlur={handleBlur}
+              className={touched.email && fieldErrors.email ? 'error' : ''}
               required
             />
+            {touched.email && fieldErrors.email && (
+              <span className="field-error">{fieldErrors.email}</span>
+            )}
           </div>
           
           <div className="form-group">
@@ -65,8 +143,13 @@ const Login = () => {
               placeholder="Password"
               value={formData.password}
               onChange={handleChange}
+              onBlur={handleBlur}
+              className={touched.password && fieldErrors.password ? 'error' : ''}
               required
             />
+            {touched.password && fieldErrors.password && (
+              <span className="field-error">{fieldErrors.password}</span>
+            )}
           </div>
 
           <div className="form-options">
