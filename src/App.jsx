@@ -7,6 +7,7 @@ import Login from './components/Auth/Login.jsx';
 import ForgotPassword from './components/Auth/ForgotPassword.jsx';
 import ResetPassword from './components/Auth/ResetPassword.jsx';
 import Dashboard from './components/Dashboard/Dashboard.jsx';
+import ScrollToTop from './components/ScrollToTop/ScrollToTop.jsx';
 // Backend disabled for UI-only preview
 
 function App() {
@@ -44,6 +45,7 @@ function App() {
           element={<Home />} 
         />
       </Routes>
+      <ScrollToTop />
     </Router>
   );
 }
