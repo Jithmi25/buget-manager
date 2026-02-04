@@ -1,6 +1,6 @@
 // src/components/Dashboard/BudgetPlanner.js
 import React, { useState } from 'react';
-// Backend disabled for UI-only preview
+import { addBudget, deleteBudget } from '../../services/api';
 
 const BudgetPlanner = ({ budgets, categories, transactions, onRefresh }) => {
   const [formData, setFormData] = useState({
@@ -9,6 +9,9 @@ const BudgetPlanner = ({ budgets, categories, transactions, onRefresh }) => {
     period: 'monthly'
   });
   const [loading, setLoading] = useState(false);
+  const [deleting, setDeleting] = useState(null);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
 
   const calculateSpending = (category, period) => {
     const now = new Date();
@@ -32,21 +35,55 @@ const BudgetPlanner = ({ budgets, categories, transactions, onRefresh }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    // UI-only: skip backend insert
-    setFormData({
-      category: '',
-      amount: '',
-      period: 'monthly'
-    });
+    setError('');
+    setSuccess(false);
 
-    if (onRefresh) onRefresh();
-    setLoading(false);
+    try {
+      const { data, error } = await addBudget(formData);
+      
+      if (error) {
+        setError(error.message || 'Failed to create budget');
+        setLoading(false);
+        return;
+      }
+
+      setFormData({
+        category: '',
+        amount: '',
+        period: 'monthly'
+      });
+
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+
+      if (onRefresh) onRefresh();
+    } catch (err) {
+      setError('An unexpected error occurred');
+      console.error('Error creating budget:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this budget?')) return;
-    // UI-only: skip backend delete
-    if (onRefresh) onRefresh();
+    
+    setDeleting(id);
+    try {
+      const { error } = await deleteBudget(id);
+      
+      if (error) {
+        alert('Failed to delete budget: ' + error.message);
+        return;
+      }
+      
+      if (onRefresh) onRefresh();
+    } catch (err) {
+      alert('An unexpected error occurred');
+      console.error('Error deleting budget:', err);
+    } finally {
+      setDeleting(null);
+    }
   };
 
   return (
@@ -96,6 +133,9 @@ const BudgetPlanner = ({ budgets, categories, transactions, onRefresh }) => {
             </select>
           </div>
 
+          {error && <div style={{ color: '#d32f2f', marginBottom: '10px' }}>{error}</div>}
+          {success && <div style={{ color: '#4caf50', marginBottom: '10px' }}>Budget created successfully!</div>}
+
           <button type="submit" className="submit-btn" disabled={loading}>
             {loading ? 'Creating...' : '+ Create Budget'}
           </button>
@@ -124,8 +164,9 @@ const BudgetPlanner = ({ budgets, categories, transactions, onRefresh }) => {
                       onClick={() => handleDelete(budget.id)}
                       className="delete-btn-small"
                       title="Delete budget"
+                      disabled={deleting === budget.id}
                     >
-                      ✕
+                      {deleting === budget.id ? '⏳' : '✕'}
                     </button>
                   </div>
                   

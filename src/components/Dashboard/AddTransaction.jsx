@@ -1,6 +1,6 @@
 // src/components/Dashboard/AddTransaction.js
 import React, { useState } from 'react';
-// Backend disabled for UI-only preview
+import { addTransaction } from '../../services/api';
 
 const AddTransaction = ({ categories, onTransactionAdded }) => {
   const [formData, setFormData] = useState({
@@ -11,22 +11,43 @@ const AddTransaction = ({ categories, onTransactionAdded }) => {
     date: new Date().toISOString().split('T')[0]
   });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
+    setSuccess(false);
 
-    // UI-only: skip backend insert
-    setFormData({
-      type: 'expense',
-      amount: '',
-      category: '',
-      description: '',
-      date: new Date().toISOString().split('T')[0]
-    });
+    try {
+      const { data, error } = await addTransaction(formData);
+      
+      if (error) {
+        setError(error.message || 'Failed to add transaction');
+        setLoading(false);
+        return;
+      }
 
-    if (onTransactionAdded) onTransactionAdded();
-    setLoading(false);
+      // Reset form
+      setFormData({
+        type: 'expense',
+        amount: '',
+        category: '',
+        description: '',
+        date: new Date().toISOString().split('T')[0]
+      });
+
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+
+      if (onTransactionAdded) onTransactionAdded();
+    } catch (err) {
+      setError('An unexpected error occurred');
+      console.error('Error adding transaction:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -98,6 +119,9 @@ const AddTransaction = ({ categories, onTransactionAdded }) => {
           className="form-input"
         />
       </div>
+
+      {error && <div style={{ color: '#d32f2f', marginBottom: '10px' }}>{error}</div>}
+      {success && <div style={{ color: '#4caf50', marginBottom: '10px' }}>Transaction added successfully!</div>}
 
       <button type="submit" className="submit-btn" disabled={loading}>
         {loading ? 'Adding...' : '+ Add Transaction'}

@@ -1,8 +1,8 @@
 -- Budget Manager Database Schema
 -- Run these commands in your Supabase SQL Editor
 
--- Enable Row Level Security
-ALTER DATABASE postgres SET "app.jwt_secret" TO 'your-jwt-secret';
+-- Note: JWT secrets are managed automatically by Supabase
+-- No need to set them manually
 
 -- Create categories table
 CREATE TABLE IF NOT EXISTS categories (
@@ -40,6 +40,22 @@ CREATE TABLE IF NOT EXISTS budgets (
 ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE budgets ENABLE ROW LEVEL SECURITY;
+
+-- Drop existing policies if they exist (to avoid errors on re-run)
+DROP POLICY IF EXISTS "Users can view their own categories" ON categories;
+DROP POLICY IF EXISTS "Users can insert their own categories" ON categories;
+DROP POLICY IF EXISTS "Users can update their own categories" ON categories;
+DROP POLICY IF EXISTS "Users can delete their own categories" ON categories;
+
+DROP POLICY IF EXISTS "Users can view their own transactions" ON transactions;
+DROP POLICY IF EXISTS "Users can insert their own transactions" ON transactions;
+DROP POLICY IF EXISTS "Users can update their own transactions" ON transactions;
+DROP POLICY IF EXISTS "Users can delete their own transactions" ON transactions;
+
+DROP POLICY IF EXISTS "Users can view their own budgets" ON budgets;
+DROP POLICY IF EXISTS "Users can insert their own budgets" ON budgets;
+DROP POLICY IF EXISTS "Users can update their own budgets" ON budgets;
+DROP POLICY IF EXISTS "Users can delete their own budgets" ON budgets;
 
 -- Create policies for categories
 CREATE POLICY "Users can view their own categories"
@@ -93,35 +109,8 @@ CREATE POLICY "Users can delete their own budgets"
   USING (auth.uid() = user_id);
 
 -- Create indexes for better performance
-CREATE INDEX idx_categories_user_id ON categories(user_id);
-CREATE INDEX idx_transactions_user_id ON transactions(user_id);
-CREATE INDEX idx_transactions_date ON transactions(date);
-CREATE INDEX idx_transactions_category ON transactions(category);
-CREATE INDEX idx_budgets_user_id ON budgets(user_id);
-
--- Insert default categories for new users (optional)
--- You can modify this trigger function to add default categories
-CREATE OR REPLACE FUNCTION create_default_categories()
-RETURNS TRIGGER AS $$
-BEGIN
-  INSERT INTO categories (user_id, name) VALUES
-    (NEW.id, 'Food & Dining'),
-    (NEW.id, 'Transportation'),
-    (NEW.id, 'Shopping'),
-    (NEW.id, 'Entertainment'),
-    (NEW.id, 'Bills & Utilities'),
-    (NEW.id, 'Healthcare'),
-    (NEW.id, 'Education'),
-    (NEW.id, 'Salary'),
-    (NEW.id, 'Freelance'),
-    (NEW.id, 'Other')
-  ON CONFLICT (user_id, name) DO NOTHING;
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- Create trigger to add default categories when user signs up
-CREATE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
-  FOR EACH ROW
-  EXECUTE FUNCTION create_default_categories();
+CREATE INDEX IF NOT EXISTS idx_categories_user_id ON categories(user_id);
+CREATE INDEX IF NOT EXISTS idx_transactions_user_id ON transactions(user_id);
+CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(date);
+CREATE INDEX IF NOT EXISTS idx_transactions_category ON transactions(category);
+CREATE INDEX IF NOT EXISTS idx_budgets_user_id ON budgets(user_id);

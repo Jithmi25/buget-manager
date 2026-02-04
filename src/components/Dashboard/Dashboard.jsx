@@ -1,20 +1,27 @@
 // src/components/Dashboard/Dashboard.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { 
+  getTransactions, 
+  getBudgets, 
+  getCategories 
+} from '../../services/api';
 import AddTransaction from './AddTransaction';
 import TransactionList from './TransactionList';
 import BudgetPlanner from './BudgetPlanner';
 import CategoryManager from './CategoryManager';
-import ThreeBackground from './ThreeBackground';
 import './Dashboard.css';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
+  const { user, signOut: authSignOut } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
   const [transactions, setTransactions] = useState([]);
   const [budgets, setBudgets] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [stats, setStats] = useState({
     totalIncome: 0,
     totalExpense: 0,
@@ -22,71 +29,77 @@ const Dashboard = () => {
   });
 
   useEffect(() => {
-    // UI-only mock data
-    setUser({ email: 'demo@budget.local' });
-    setTransactions([
-      {
-        id: 't1',
-        type: 'income',
-        amount: 85000,
-        category: 'Salary',
-        description: 'January salary',
-        date: new Date().toISOString()
-      },
-      {
-        id: 't2',
-        type: 'expense',
-        amount: 12000,
-        category: 'Rent',
-        description: 'Monthly rent',
-        date: new Date().toISOString()
-      },
-      {
-        id: 't3',
-        type: 'expense',
-        amount: 3200,
-        category: 'Groceries',
-        description: 'Weekly groceries',
-        date: new Date().toISOString()
-      },
-      {
-        id: 't4',
-        type: 'income',
-        amount: 4500,
-        category: 'Freelance',
-        description: 'Design project',
-        date: new Date().toISOString()
-      },
-      {
-        id: 't5',
-        type: 'expense',
-        amount: 1800,
-        category: 'Transport',
-        description: 'Fuel and rides',
-        date: new Date().toISOString()
-      }
-    ]);
-    setBudgets([
-      { id: 'b1', category: 'Rent', amount: 15000, period: 'monthly' },
-      { id: 'b2', category: 'Groceries', amount: 6000, period: 'monthly' },
-      { id: 'b3', category: 'Transport', amount: 3500, period: 'monthly' }
-    ]);
-    setCategories([
-      { id: 'c1', name: 'Salary' },
-      { id: 'c2', name: 'Rent' },
-      { id: 'c3', name: 'Groceries' },
-      { id: 'c4', name: 'Transport' },
-      { id: 'c5', name: 'Freelance' }
-    ]);
-  }, []);
+    if (user) {
+      loadAllData();
+    }
+  }, [user]);
 
   useEffect(() => {
     calculateStats();
   }, [transactions]);
 
-  const fetchTransactions = () => {};
-  const fetchBudgets = () => {};
-  const fetchCategories = () => {};
+  const loadAllData = async () => {
+    setLoading(true);
+    setError('');
+    
+    try {
+      await Promise.all([
+        fetchTransactions(),
+        fetchBudgets(),
+        fetchCategories()
+      ]);
+    } catch (err) {
+      console.error('Error loading dashboard data:', err);
+      setError('Failed to load data. Please refresh the page.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchTransactions = async () => {
+    try {
+      const { data, error } = await getTransactions();
+      
+      if (error) {
+        console.error('Error fetching transactions:', error);
+        return;
+      }
+      
+      setTransactions(data || []);
+    } catch (err) {
+      console.error('Unexpected error fetching transactions:', err);
+    }
+  };
+
+  const fetchBudgets = async () => {
+    try {
+      const { data, error } = await getBudgets();
+      
+      if (error) {
+        console.error('Error fetching budgets:', error);
+        return;
+      }
+      
+      setBudgets(data || []);
+    } catch (err) {
+      console.error('Unexpected error fetching budgets:', err);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const { data, error } = await getCategories();
+      
+      if (error) {
+        console.error('Error fetching categories:', error);
+        return;
+      }
+      
+      setCategories(data || []);
+    } catch (err) {
+      console.error('Unexpected error fetching categories:', err);
+    }
+  };
 
   const calculateStats = () => {
     const income = transactions
@@ -105,13 +118,50 @@ const Dashboard = () => {
   };
 
   const handleSignOut = async () => {
-    navigate('/login');
+    try {
+      await authSignOut();
+      navigate('/login');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
   };
+
+  if (loading) {
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        fontSize: '18px',
+        color: '#666'
+      }}>
+        Loading dashboard...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        fontSize: '18px',
+        color: '#d32f2f'
+      }}>
+        <p>{error}</p>
+        <button onClick={loadAllData} style={{ marginTop: '20px', padding: '10px 20px' }}>
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="dashboard-container">
-      <ThreeBackground />
-      
       <aside className="sidebar">
         <div className="sidebar-header">
           <div className="logo">

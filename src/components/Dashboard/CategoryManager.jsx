@@ -1,26 +1,63 @@
 // src/components/Dashboard/CategoryManager.js
 import React, { useState } from 'react';
-// Backend disabled for UI-only preview
+import { addCategory, deleteCategory } from '../../services/api';
 
 const CategoryManager = ({ categories, onRefresh }) => {
   const [newCategory, setNewCategory] = useState('');
   const [loading, setLoading] = useState(false);
+  const [deleting, setDeleting] = useState(null);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
 
   const handleAdd = async (e) => {
     e.preventDefault();
     if (!newCategory.trim()) return;
 
     setLoading(true);
-    // UI-only: skip backend insert
-    setNewCategory('');
-    if (onRefresh) onRefresh();
-    setLoading(false);
+    setError('');
+    setSuccess(false);
+
+    try {
+      const { data, error } = await addCategory(newCategory.trim());
+      
+      if (error) {
+        setError(error.message || 'Failed to add category');
+        setLoading(false);
+        return;
+      }
+
+      setNewCategory('');
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+
+      if (onRefresh) onRefresh();
+    } catch (err) {
+      setError('An unexpected error occurred');
+      console.error('Error adding category:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure? This will affect existing transactions.')) return;
-    // UI-only: skip backend delete
-    if (onRefresh) onRefresh();
+    
+    setDeleting(id);
+    try {
+      const { error } = await deleteCategory(id);
+      
+      if (error) {
+        alert('Failed to delete category: ' + error.message);
+        return;
+      }
+      
+      if (onRefresh) onRefresh();
+    } catch (err) {
+      alert('An unexpected error occurred');
+      console.error('Error deleting category:', err);
+    } finally {
+      setDeleting(null);
+    }
   };
 
   return (
@@ -38,6 +75,10 @@ const CategoryManager = ({ categories, onRefresh }) => {
               required
             />
           </div>
+
+          {error && <div style={{ color: '#d32f2f', marginBottom: '10px' }}>{error}</div>}
+          {success && <div style={{ color: '#4caf50', marginBottom: '10px' }}>Category added successfully!</div>}
+
           <button type="submit" className="submit-btn" disabled={loading}>
             {loading ? 'Adding...' : '+ Add Category'}
           </button>
@@ -60,8 +101,9 @@ const CategoryManager = ({ categories, onRefresh }) => {
                   onClick={() => handleDelete(category.id)}
                   className="delete-btn-small"
                   title="Delete category"
+                  disabled={deleting === category.id}
                 >
-                  ✕
+                  {deleting === category.id ? '⏳' : '✕'}
                 </button>
               </div>
             ))}

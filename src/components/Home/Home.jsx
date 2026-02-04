@@ -59,12 +59,6 @@ const Home = () => {
               <div className="card-value">75% Complete</div>
             </div>
           </div>
-          
-          <div className="background-shapes">
-            <div className="shape shape-1 animate-pulse"></div>
-            <div className="shape shape-2 animate-pulse delay-1"></div>
-            <div className="shape shape-3 animate-pulse delay-2"></div>
-          </div>
         </div>
       </div>
       

@@ -1,7 +1,7 @@
 // src/components/Auth/ForgotPassword.jsx
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-// Backend disabled for UI-only preview
+import { resetPassword } from '../../lib/supabase';
 import authVideo from '../../assets/auth.mp4';
 import './Auth.css';
 
@@ -49,11 +49,22 @@ const ForgotPassword = () => {
 
     setLoading(true);
 
-    // UI-only: skip backend call and show success
-    setTimeout(() => {
+    try {
+      const { data, error } = await resetPassword(email);
+      
+      if (error) {
+        setError(error.message || 'Failed to send reset email. Please try again.');
+        setLoading(false);
+        return;
+      }
+
       setSuccess(true);
+    } catch (err) {
+      setError('An unexpected error occurred. Please try again.');
+      console.error('Password reset error:', err);
+    } finally {
       setLoading(false);
-    }, 500);
+    }
   };
 
   if (success) {

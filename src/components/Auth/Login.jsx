@@ -1,8 +1,9 @@
 // src/components/Auth/Login.js
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import authVideo from '../../assets/auth.mp4';
 import { Link, useNavigate } from 'react-router-dom';
-// Backend disabled for UI-only preview
+import { signInWithEmail } from '../../lib/supabase';
+import { useAuth } from '../../context/AuthContext';
 import './Auth.css';
 
 const Login = () => {
@@ -15,6 +16,13 @@ const Login = () => {
   const [touched, setTouched] = useState({});
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      navigate('/dashboard');
+    }
+  }, [user, authLoading, navigate]);
 
   // Validation functions
   const validateEmail = (email) => {
@@ -97,16 +105,25 @@ const Login = () => {
 
     setLoading(true);
 
-    // UI-only: skip backend auth and go to dashboard
-    setTimeout(() => {
-      setLoading(false);
-      navigate('/dashboard');
-    }, 500);
-  };
+    try {
+      const { data, error } = await signInWithEmail(formData.email, formData.password);
+      
+      if (error) {
+        setError(error.message || 'Login failed. Please try again.');
+        setLoading(false);
+        return;
+      }
 
-  const handleGoogleLogin = async () => {
-    // UI-only: skip backend OAuth and go to dashboard
-    navigate('/dashboard');
+      if (data && data.user) {
+        // Navigate to dashboard on successful login
+        navigate('/dashboard');
+      }
+    } catch (err) {
+      setError('An unexpected error occurred. Please try again.');
+      console.error('Login error:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -170,19 +187,6 @@ const Login = () => {
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
-
-        <div className="divider">
-          <span>OR</span>
-        </div>
-
-        <button onClick={handleGoogleLogin} className="btn-google">
-          <img 
-            src="https://www.google.com/favicon.ico" 
-            alt="Google"
-            className="google-icon"
-          />
-          Sign in with Google
-        </button>
 
         <div className="auth-footer">
           <p>

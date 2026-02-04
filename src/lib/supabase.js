@@ -33,8 +33,8 @@ export const signUpWithEmail = async (email, password, fullName) => {
         data: {
           full_name: fullName,
           avatar_url: null
-        },
-        emailRedirectTo: `${window.location.origin}/dashboard`
+        }
+        // Note: emailRedirectTo removed - configure in Supabase dashboard if needed
       }
     });
 
@@ -130,14 +130,7 @@ export const getCurrentUser = async () => {
   const { data: { user }, error } = await supabase.auth.getUser();
   
   if (user && !error) {
-    // Get additional profile data
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single();
-    
-    return { user: { ...user, profile }, error };
+    return { user, error: null };
   }
   
   return { user: null, error };
@@ -150,26 +143,18 @@ export const updateUserProfile = async (updates) => {
   if (!user) throw new Error('No user logged in');
   
   // Update in auth (basic info)
-  if (updates.email || updates.password) {
-    const { error } = await supabase.auth.updateUser({
-      email: updates.email,
-      password: updates.password
-    });
-    if (error) throw error;
+  const updateData = {};
+  
+  if (updates.email) updateData.email = updates.email;
+  if (updates.password) updateData.password = updates.password;
+  if (updates.fullName) updateData.data = { full_name: updates.fullName };
+  
+  if (Object.keys(updateData).length > 0) {
+    const { data, error } = await supabase.auth.updateUser(updateData);
+    return { data, error };
   }
 
-  // Update in profiles table (additional info)
-  const { data, error } = await supabase
-    .from('profiles')
-    .update({
-      full_name: updates.fullName,
-      avatar_url: updates.avatarUrl,
-      currency: updates.currency,
-      updated_at: new Date().toISOString()
-    })
-    .eq('id', user.id);
-
-  return { data, error };
+  return { data: user, error: null };
 };
 
 // 7. Forgot Password

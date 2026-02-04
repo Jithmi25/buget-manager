@@ -1,8 +1,9 @@
 // src/components/Auth/SignUp.js
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import authVideo from '../../assets/auth.mp4';
 import { Link, useNavigate } from 'react-router-dom';
-// Backend disabled for UI-only preview
+import { signUpWithEmail } from '../../lib/supabase';
+import { useAuth } from '../../context/AuthContext';
 import './Auth.css';
 
 const SignUp = () => {
@@ -18,6 +19,13 @@ const SignUp = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      navigate('/dashboard');
+    }
+  }, [user, authLoading, navigate]);
 
   // Validation functions
   const validateFullName = (name) => {
@@ -123,16 +131,31 @@ const SignUp = () => {
     }
 
     setLoading(true);
-    // UI-only: skip backend signup and show success
-    setTimeout(() => {
-      setLoading(false);
-      setSuccess(true);
-    }, 500);
-  };
+    
+    try {
+      const { data, error } = await signUpWithEmail(
+        formData.email, 
+        formData.password, 
+        formData.fullName
+      );
+      
+      if (error) {
+        setError(error.message || 'Sign up failed. Please try again.');
+        setLoading(false);
+        return;
+      }
 
-  const handleGoogleSignUp = async () => {
-    // UI-only: skip backend OAuth and go to dashboard
-    navigate('/dashboard');
+      // Redirect to dashboard on successful signup (email confirmation disabled)
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 1000);
+      setSuccess(true);
+      setLoading(false);
+    } catch (err) {
+      setError('An unexpected error occurred. Please try again.');
+      console.error('Sign up error:', err);
+      setLoading(false);
+    }
   };
 
   if (success) {
@@ -245,19 +268,6 @@ const SignUp = () => {
             {loading ? 'Creating Account...' : 'Sign Up'}
           </button>
         </form>
-
-        <div className="divider">
-          <span>OR</span>
-        </div>
-
-        <button onClick={handleGoogleSignUp} className="btn-google">
-          <img 
-            src="https://www.google.com/favicon.ico" 
-            alt="Google"
-            className="google-icon"
-          />
-          Sign up with Google
-        </button>
 
         <div className="auth-footer">
           <p>
