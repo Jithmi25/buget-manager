@@ -36,10 +36,23 @@ CREATE TABLE IF NOT EXISTS budgets (
   UNIQUE(user_id, category, period)
 );
 
+-- Create profiles table
+CREATE TABLE IF NOT EXISTS profiles (
+  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  full_name TEXT,
+  avatar_url TEXT,
+  currency VARCHAR(10) DEFAULT 'LKR',
+  language VARCHAR(10) DEFAULT 'en',
+  theme VARCHAR(10) DEFAULT 'light',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Enable Row Level Security
 ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE budgets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 
 -- Drop existing policies if they exist (to avoid errors on re-run)
 DROP POLICY IF EXISTS "Users can view their own categories" ON categories;
@@ -56,6 +69,10 @@ DROP POLICY IF EXISTS "Users can view their own budgets" ON budgets;
 DROP POLICY IF EXISTS "Users can insert their own budgets" ON budgets;
 DROP POLICY IF EXISTS "Users can update their own budgets" ON budgets;
 DROP POLICY IF EXISTS "Users can delete their own budgets" ON budgets;
+
+DROP POLICY IF EXISTS "Users can view their own profile" ON profiles;
+DROP POLICY IF EXISTS "Users can insert their own profile" ON profiles;
+DROP POLICY IF EXISTS "Users can update their own profile" ON profiles;
 
 -- Create policies for categories
 CREATE POLICY "Users can view their own categories"
@@ -107,6 +124,34 @@ CREATE POLICY "Users can update their own budgets"
 CREATE POLICY "Users can delete their own budgets"
   ON budgets FOR DELETE
   USING (auth.uid() = user_id);
+
+-- Create policies for profiles
+CREATE POLICY "Users can view their own profile"
+  ON profiles FOR SELECT
+  USING (auth.uid() = id);
+
+CREATE POLICY "Users can insert their own profile"
+  ON profiles FOR INSERT
+  WITH CHECK (auth.uid() = id);
+
+CREATE POLICY "Users can update their own profile"
+  ON profiles FOR UPDATE
+  USING (auth.uid() = id);
+
+-- Auto-update updated_at on profile changes
+CREATE OR REPLACE FUNCTION set_profiles_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS profiles_updated_at ON profiles;
+CREATE TRIGGER profiles_updated_at
+  BEFORE UPDATE ON profiles
+  FOR EACH ROW
+  EXECUTE FUNCTION set_profiles_updated_at();
 
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_categories_user_id ON categories(user_id);

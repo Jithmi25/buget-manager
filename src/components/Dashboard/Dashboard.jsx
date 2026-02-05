@@ -11,6 +11,7 @@ import AddTransaction from './AddTransaction';
 import TransactionList from './TransactionList';
 import BudgetPlanner from './BudgetPlanner';
 import CategoryManager from './CategoryManager';
+import UserProfile from './UserProfile';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -199,6 +200,13 @@ const Dashboard = () => {
             <span className="nav-icon">🏷️</span>
             <span>Categories</span>
           </button>
+          <button 
+            className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`}
+            onClick={() => setActiveTab('settings')}
+          >
+            <span className="nav-icon">⚙️</span>
+            <span>Profile</span>
+          </button>
         </nav>
         
         <div className="sidebar-footer">
@@ -224,12 +232,14 @@ const Dashboard = () => {
               {activeTab === 'transactions' && 'Transactions'}
               {activeTab === 'budgets' && 'Budget Planning'}
               {activeTab === 'categories' && 'Categories'}
+              {activeTab === 'settings' && 'Profile Settings'}
             </h1>
             <p className="dashboard-subtitle">
               {activeTab === 'overview' && 'Your financial overview at a glance'}
               {activeTab === 'transactions' && 'Manage your income and expenses'}
               {activeTab === 'budgets' && 'Plan and track your budgets'}
               {activeTab === 'categories' && 'Organize your transaction categories'}
+              {activeTab === 'settings' && 'Update your personal details and preferences'}
             </p>
           </div>
         </header>
@@ -323,6 +333,12 @@ const Dashboard = () => {
                 onRefresh={fetchCategories}
               />
             </div>
+          </div>
+        )}
+
+        {activeTab === 'settings' && (
+          <div className="settings-content">
+            <UserProfile />
           </div>
         )}
       </main>
