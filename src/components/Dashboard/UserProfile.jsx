@@ -1,8 +1,4 @@
 // src/components/Dashboard/UserProfile.jsx
-import React, { useEffect, useState } from 'react';
-import { useAuth } from '../../context/AuthContext';
-import { getUserProfile, updateUserProfile, uploadProfileAvatar } from '../../lib/supabase';
-// src/components/Dashboard/UserProfile.jsx
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { getUserProfile, updateUserProfile, uploadProfileAvatar } from "../../lib/supabase";
