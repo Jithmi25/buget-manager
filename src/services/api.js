@@ -122,6 +122,30 @@ export const deleteTransaction = async (id) => {
   }
 };
 
+/**
+ * Delete all transactions for the current user
+ */
+export const clearTransactions = async () => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+
+    const { error } = await supabase
+      .from('transactions')
+      .delete()
+      .eq('user_id', user.id);
+
+    if (error) throw error;
+    return { error: null };
+  } catch (error) {
+    console.error('Error clearing transactions:', error);
+    return { error };
+  }
+};
+
 // ============================================
 // BUDGETS API
 // ============================================

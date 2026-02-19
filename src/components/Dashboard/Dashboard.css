@@ -242,6 +242,18 @@
   margin-bottom: 24px;
 }
 
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.card-header .card-title {
+  margin-bottom: 0;
+}
+
 /* Overview Grid */
 .overview-grid {
   display: grid;
@@ -419,6 +431,11 @@
 .delete-btn-small:hover {
   background: #fc8181;
   color: white;
+}
+
+.delete-btn-small:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 /* Empty State */

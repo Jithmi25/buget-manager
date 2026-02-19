@@ -5,7 +5,8 @@ import { useAuth } from '../../context/AuthContext';
 import { 
   getTransactions, 
   getBudgets, 
-  getCategories 
+  getCategories,
+  clearTransactions
 } from '../../services/api';
 import AddTransaction from './AddTransaction';
 import TransactionList from './TransactionList';
@@ -23,6 +24,7 @@ const Dashboard = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [clearing, setClearing] = useState(false);
   const [stats, setStats] = useState({
     totalIncome: 0,
     totalExpense: 0,
@@ -124,6 +126,28 @@ const Dashboard = () => {
       navigate('/login');
     } catch (error) {
       console.error('Error signing out:', error);
+    }
+  };
+
+  const handleClearTransactions = async () => {
+    if (transactions.length === 0) return;
+    if (!window.confirm('This will delete all your transactions. Continue?')) return;
+
+    setClearing(true);
+    try {
+      const { error } = await clearTransactions();
+
+      if (error) {
+        alert('Failed to clear transactions: ' + error.message);
+        return;
+      }
+
+      await fetchTransactions();
+    } catch (err) {
+      console.error('Error clearing transactions:', err);
+      alert('An unexpected error occurred');
+    } finally {
+      setClearing(false);
     }
   };
 
@@ -274,7 +298,17 @@ const Dashboard = () => {
 
             <div className="overview-grid">
               <div className="dashboard-card">
-                <h3 className="card-title">Recent Transactions</h3>
+                <div className="card-header">
+                  <h3 className="card-title">Recent Transactions</h3>
+                  <button
+                    className="delete-btn-small"
+                    onClick={handleClearTransactions}
+                    disabled={clearing || transactions.length === 0}
+                    title="Clear all transactions"
+                  >
+                    {clearing ? 'Clearing...' : 'Clear All'}
+                  </button>
+                </div>
                 <TransactionList 
                   transactions={transactions.slice(0, 5)} 
                   onRefresh={fetchTransactions}
