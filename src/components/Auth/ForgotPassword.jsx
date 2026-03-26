@@ -89,7 +89,7 @@ const ForgotPassword = () => {
         </div>
 
         <div className="auth-visual">
-          <video autoPlay loop muted className="auth-video" poster="/placeholder-video.jpg">
+          <video autoPlay loop muted className="auth-video">
             <source src={authVideo} type="video/mp4" />
             Your browser does not support the video tag.
           </video>
@@ -139,7 +139,7 @@ const ForgotPassword = () => {
       </div>
 
       <div className="auth-visual">
-        <video autoPlay loop muted className="auth-video" poster="/placeholder-video.jpg">
+        <video autoPlay loop muted className="auth-video">
           <source src={authVideo} type="video/mp4" />
           Your browser does not support the video tag.
         </video>
